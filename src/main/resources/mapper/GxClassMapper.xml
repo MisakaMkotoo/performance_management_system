@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.misaka.performance_management_system.dao.GxbjMapper">
+    <resultMap type="com.misaka.performance_management_system.entity.Gxbj" id="GxClassResult">
+        <result property="id" column="jnm"/>
+        <result property="bh" column="bh"/>
+        <result property="bjmc" column="bjmc"/>
+        <result property="jbny" column="jbny"/>
+        <result property="bzrxm" column="bzrxm"/>
+        <result property="bzxm" column="bzxm"/>
+        <association property="gxzy" javaType="com.misaka.performance_management_system.entity.Gxzy">
+            <id column="zyjnm" property="id"/>
+            <result property="zymc" column="zymc"/>
+            <result property="zyh" column="xyh"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="GxClassGxTimetableResult" type="com.misaka.performance_management_system.entity.Gxbj"
+               extends="GxClassResult">
+        <collection property="gxkbList" ofType="com.misaka.performance_management_system.entity.Gxkb" javaType="java.util.List" resultMap="GxTimetableResult"/>
+    </resultMap>
+
+    <resultMap type="com.misaka.performance_management_system.entity.Gxkb" id="GxTimetableResult">
+        <id column="tbjnm" property="jnm"/>
+        <result property="xq" column="xq"/>
+        <result property="jc" column="jc"/>
+        <!--学期-->
+        <association property="gxxq" javaType="com.misaka.performance_management_system.entity.Gxxq">
+            <id property="id" column="xqjnm"/>
+            <result property="bh" column="xqbh"/>
+            <result property="mc" column="xqmc"/>
+        </association>
+        <!--        课程-->
+        <association property="gxkc" javaType="com.misaka.performance_management_system.entity.Gxkc">
+            <id property="id" column="kcjnm"/>
+            <result property="kch" column="kch"/>
+            <result property="kcmc" column="kcmc"/>
+        </association>
+        <!--教室-->
+        <association property="gxjs" javaType="com.misaka.performance_management_system.entity.Gxjs">
+            <id property="id" column="jsjnm"/>
+            <result property="jsbh" column="jsbh"/>
+            <result property="jsmc" column="jsmc"/>
+            <result property="jslb" column="jslb"/>
+            <result property="jswz" column="jswz"/>
+        </association>
+        <!--        教职工-->
+        <association property="gxjzg" javaType="com.misaka.performance_management_system.entity.Gxjzg">
+            <id property="id" column="jzgjnm"/>
+            <result property="gh" column="gh"/>
+            <result property="xm" column="xm"/>
+        </association>
+        <!--        单位-->
+        <association property="gxbm" javaType="com.misaka.performance_management_system.entity.Gxbm">
+            <id property="id" column="dwjnm"/>
+            <result property="bh" column="dwbh"/>
+            <result property="mc" column="dwmc"/>
+        </association>
+    </resultMap>
+
+    <sql id="selectGxClassVo">
+        SELECT gxbj.jnm,
+               gxbj.bh,
+               gxbj.bjmc,
+               gxbj.bzrxm,
+               gxbj.bzxm,
+               gxbj.jbny,
+               gxkb.jnm  tbjnm,
+               gxkb.xq,
+               gxkb.jc,
+               gxkc.jnm kcjnm,
+               gxkc.kch,
+               gxkc.kcmc,
+               gxbm.jnm dwjnm,
+               gxbm.bh  dwbh,
+               gxbm.mc  dwmc,
+               gxzy.jnm      zyjnm,
+               gxzy.zyh,
+               gxzy.zymc,
+               gxjs.jnm  jsjnm,
+               gxjs.jsbh,
+               gxjs.jsmc,
+               gxjs.jswz,
+               gxjzg.jnm    jzgjnm,
+               gxjzg.gh,
+               gxjzg.xm,
+               gxxq.jnm   xqjnm,
+               gxxq.bh    xqbh,
+               gxxq.mc    xqmc
+        FROM gxbj
+                 left JOIN
+             gxkb
+             ON
+                 gxbj.jnm = gxkb.bjjnm
+
+                 left JOIN
+             gxzy
+             ON
+                 gxbj.sszy = gxzy.jnm
+                 left JOIN
+             gxkc
+             ON
+                 gxkb.kcjnm = gxkc.jnm
+                 left JOIN
+             gxbm
+             ON
+                 gxkb.bmjnm = gxbm.jnm
+                 left JOIN
+             gxjzg
+             ON
+                 gxkb.jzgjnm = gxjzg.jnm
+                 left JOIN
+             gxjs
+             ON
+                 gxkb.jsjnm = gxjs.jnm
+                 left JOIN
+             gxxq on gxkb.xqjnm = gxxq.jnm
+    </sql>
+
+    <select id="findByPage" parameterType="com.misaka.performance_management_system.entity.Gxbj"
+            resultMap="GxClassGxTimetableResult">
+        <include refid="selectGxClassVo"/>
+        WHERE
+        gxbj.jnm IN (
+        SELECT
+        gc.jnm
+        FROM
+        ( SELECT gxbj.jnm FROM gxbj
+        <where>
+            <if test="gxbj.bh != null  and gxbj.bh != ''">
+                and gxbj.bh like concat('%', #{gxbj.bh}, '%')
+            </if>
+            <if test="gxbj.bjmc != null  and gxbj.bjmc != ''">
+                and gxbj.bjmc = #{gxbj.bjmc}
+            </if>
+            <if test="gxbj.jbny != null  and gxbj.jbny != ''">
+                and gxbj.jbny = #{gxbj.jbny}
+            </if>
+            <if test="gxbj.bzrxm != null  and gxbj.bzrxm != ''">
+                and gxbj.bzrxm = #{gxbj.bzrxm}
+            </if>
+            <if test="gxbj.bzxm != null  and gxbj.bzxm != ''">
+                and gxbj.bzxm = #{gxbj.bzxm}
+            </if>
+        </where>
+        LIMIT ${page},${pageSize} ) AS gc)
+    </select>
+    <select id="getRowsCount" parameterType="com.misaka.performance_management_system.entity.Gxbj"
+            resultType="Integer">
+        select COUNT(*)
+        FROM
+        gxbj
+        WHERE
+        gxbj.jnm IN (
+        SELECT
+        gc.jnm
+        FROM
+        ( SELECT gxbj.jnm FROM gxbj
+        <where>
+            <if test="bh != null  and bh != ''">
+                and gxbj.bh like concat('%', #{bh}, '%')
+            </if>
+            <if test="bjmc != null  and bjmc != ''">
+                and gxbj.bjmc = #{bjmc}
+            </if>
+            <if test="jbny != null  and jbny != ''">
+                and gxbj.jbny = #{jbny}
+            </if>
+            <if test="bzrxm != null  and bzrxm != ''">
+                and gxbj.bzrxm = #{bzrxm}
+            </if>
+            <if test="bzxm != null  and bzxm != ''">
+                and gxbj.bzxm = #{bzxm}
+            </if>
+        </where>
+        ) AS gc)
+    </select>
+
+    <select id="getMe" parameterType="String" resultMap="GxClassGxTimetableResult">
+        <include refid="selectGxClassVo"/>
+        where gxbj.jnm = #{id}
+    </select>
+
+    <insert id="save" parameterType="com.misaka.performance_management_system.entity.Gxbj">
+        insert into gxbj
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            jnm,
+            <if test="bh != null and bh != ''">
+                bh,
+            </if>
+            <if test="bjmc != null and bjmc != ''">
+                bjmc,
+            </if>
+            <if test="jbny != null">
+                jbny,
+            </if>
+            <if test="gxzy.id != null and gxzy.id != ''">
+                sszy,
+            </if>
+            <if test="bzrxm != null">
+                bzrxm,
+            </if>
+            <if test="bzxm != null">
+                bzxm,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id},
+            <if test="bh != null and bh != ''">
+                #{bh},
+            </if>
+            <if test="bjmc != null and bjmc != ''">
+                #{bjmc},
+            </if>
+            <if test="jbny != null">
+                #{jbny},
+            </if>
+            <if test="gxzy.id != null and gxzy.id != ''">
+                #{gxzy.id},
+            </if>
+            <if test="bzrxm != null">
+                #{bzrxm},
+            </if>
+            <if test="bzxm != null">
+                #{bzxm},
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="batchSave" parameterType="com.misaka.performance_management_system.entity.Gxbj">
+        <foreach item="obj" collection="list" separator=";">
+
+        insert into gxbj
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            jnm,
+            <if test="obj.bh != null and obj.bh != ''">
+                bh,
+            </if>
+            <if test="obj.bjmc != null and obj.bjmc != ''">
+                bjmc,
+            </if>
+            <if test="obj.jbny != null">
+                jbny,
+            </if>
+            <if test="obj.gxzy.id != null and obj.gxzy.id != ''">
+                sszy,
+            </if>
+            <if test="obj.bzrxm != null">
+                bzrxm,
+            </if>
+            <if test="obj.bzxm != null">
+                bzxm,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{obj.id},
+            <if test="obj.bh != null and obj.bh != ''">
+                #{obj.bh},
+            </if>
+            <if test="obj.bjmc != null and obj.bjmc != ''">
+                #{obj.bjmc},
+            </if>
+            <if test="obj.jbny != null">
+                #{obj.jbny},
+            </if>
+            <if test="obj.gxzy.id != null and obj.gxzy.id != ''">
+                #{obj.gxzy.id},
+            </if>
+            <if test="obj.bzrxm != null">
+                #{obj.bzrxm},
+            </if>
+            <if test="obj.bzxm != null">
+                #{obj.bzxm},
+            </if>
+        </trim>
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.misaka.performance_management_system.entity.Gxbj">
+        update gxbj
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="bh != null and bh != ''">
+                bh = #{bh},
+            </if>
+            <if test="bjmc != null and bjmc != ''">
+                bjmc = #{bjmc},
+            </if>
+            <if test="jbny != null">
+                jbny = #{jbny},
+            </if>
+            <if test="gxzy.id != null and gxzy.id != ''">
+                sszy = #{gxzy.id},
+            </if>
+            <if test="bzrxm != null">
+                bzrxm = #{bzrxm},
+            </if>
+            <if test="bzxm != null">
+                bzxm = #{bzxm},
+            </if>
+        </trim>
+        where jnm = #{id}
+    </update>
+    <update id="batchUpdate" parameterType="com.misaka.performance_management_system.entity.Gxbj">
+        <foreach item="obj" collection="list"  separator=";" >
+
+        update gxbj
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="obj.bh != null and obj.bh != ''">
+                bh = #{obj.bh},
+            </if>
+            <if test="obj.bjmc != null and obj.bjmc != ''">
+                bjmc = #{obj.bjmc},
+            </if>
+            <if test="obj.jbny != null">
+                jbny = #{obj.jbny},
+            </if>
+            <if test="obj.gxzy.id != null and obj.gxzy.id != ''">
+                sszy = #{obj.gxzy.id},
+            </if>
+            <if test="obj.bzrxm != null">
+                bzrxm = #{obj.bzrxm},
+            </if>
+            <if test="obj.bzxm != null">
+                bzxm = #{obj.bzxm},
+            </if>
+        </trim>
+        where jnm = #{obj.id}
+        </foreach>
+    </update>
+    <delete id="delete" parameterType="String">
+        delete
+        from gxbj
+        where jnm = #{id}
+    </delete>
+
+    <delete id="batchDelete" parameterType="String">
+        delete from gxbj where jnm in
+        <foreach item="obj" collection="list" open="(" separator="," close=")">
+            #{obj.id}
+        </foreach>
+    </delete>
+
+</mapper>
