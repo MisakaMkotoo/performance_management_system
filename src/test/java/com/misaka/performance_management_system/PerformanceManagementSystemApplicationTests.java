@@ -85,3 +85,48 @@ class PerformanceManagementSystemApplicationTests {
         gxbjMapper.batchDelete(list);
     }
 }
+package com.example.demo;
+
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+public class MyAspect {
+
+    @Before("execution(* com.example.demo.User.getbmi(double, double))")
+    public void beforeDoSomething() {
+        System.out.println("Before getbmi method");
+    }
+}
+
+package com.example.demo;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class User {
+
+    public double getbmi(double height, double weight) {
+        double bmi = calculateBmi(height, weight);
+        System.out.println("BMI为: " + bmi);
+        return bmi;
+    }
+
+    private double calculateBmi(double height, weight) {
+        if (height <= 0 || weight <= 0) {
+            throw new IllegalArgumentException("身高和体重必须大于零");
+        }
+        return weight / (height * height);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        User myService = new User();
+        double height = 1.75; 
+        double weight = 70;  
+        double bmi = myService.getbmi(height, weight);
+    }
+}
